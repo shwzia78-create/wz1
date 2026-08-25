@@ -1,0 +1,120 @@
+/* Codify COD 1-Click Storefront Styles */
+:root {
+  --codify-primary: #059669;
+  --codify-primary-hover: #047857;
+  --codify-text: #ffffff;
+  --codify-bg-overlay: rgba(15, 23, 42, 0.75);
+}
+
+.codify-wrapper {
+  margin: 12px 0 16px 0;
+  width: 100%;
+  clear: both;
+  display: block;
+}
+
+.codify-btn-main {
+  width: 100%;
+  min-height: 52px;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, var(--codify-primary) 0%, var(--codify-primary-hover) 100%);
+  color: var(--codify-text);
+  font-size: 16px;
+  font-weight: 800;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 8px 20px -4px rgba(5, 150, 105, 0.45);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  letter-spacing: 0.3px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  text-decoration: none;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 2;
+}
+
+.codify-btn-main:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px -4px rgba(5, 150, 105, 0.55);
+}
+
+.codify-btn-main:active {
+  transform: translateY(0);
+}
+
+.codify-btn-pulse {
+  animation: codifyBtnPulse 2.4s infinite;
+}
+
+@keyframes codifyBtnPulse {
+  0% { transform: scale(1); box-shadow: 0 8px 20px -4px rgba(5, 150, 105, 0.45); }
+  50% { transform: scale(1.02); box-shadow: 0 12px 28px -2px rgba(5, 150, 105, 0.65); }
+  100% { transform: scale(1); box-shadow: 0 8px 20px -4px rgba(5, 150, 105, 0.45); }
+}
+
+@keyframes codifyModalFade {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.codify-modal-active {
+  overflow: hidden !important;
+}
+
+.codify-upsell-card {
+  transition: all 0.2s ease;
+}
+
+.codify-upsell-card:hover {
+  border-color: #cbd5e1;
+  background-color: #f8fafc;
+}
+
+.codify-upsell-selected {
+  background: #f0fdf4 !important;
+  border-color: #10b981 !important;
+}
+
+/* Sticky Bottom Bar for Mobile / Floating Checkout */
+.codify-sticky-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  padding: 10px 16px;
+  background: #ffffff;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 999999;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.codify-sticky-btn {
+  width: 100%;
+  max-width: 480px;
+  min-height: 46px;
+  padding: 12px 18px;
+  border: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 6px 16px rgba(5, 150, 105, 0.35);
+  transition: transform 0.15s ease;
+}
+
+@media (min-width: 768px) {
+  .codify-sticky-bar {
+    display: none; /* In desktop, in-page button takes primary focus unless sticky_only */
+  }
+}

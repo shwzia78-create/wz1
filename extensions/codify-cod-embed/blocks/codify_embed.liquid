@@ -1,0 +1,308 @@
+{% comment %}
+  Codify COD 1-Click Form (Global Theme App Embed)
+  Enabled globally via Online Store > Themes > Customize > Theme settings > App embeds
+{% endcomment %}
+
+{{ 'codify-style.css' | asset_url | stylesheet_tag }}
+
+<!-- Template for Codify 1-Click COD Modal -->
+<div id="codify-modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.78); z-index:99999999; justify-content:center; align-items:center; padding:16px; box-sizing:border-box; backdrop-filter:blur(6px);">
+  <div style="background:#ffffff; width:100%; max-width:540px; border-radius:20px; box-shadow:0 25px 60px -15px rgba(0,0,0,0.35); overflow:hidden; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; animation:codifyModalFade 0.25s cubic-bezier(0.16, 1, 0.3, 1); position:relative; max-height:92vh; display:flex; flex-direction:column;">
+    
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg, {{ block.settings.button_color | default: '#059669' }} 0%, #047857 100%); color:#ffffff; padding:18px 22px; text-align:center; position:relative; flex-shrink:0;">
+      <button type="button" id="codify-close-btn" style="position:absolute; top:14px; right:16px; background:rgba(255,255,255,0.2); border:none; color:#ffffff; font-size:22px; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1; transition:background 0.2s;">&times;</button>
+      <h2 style="margin:0; font-size:19px; font-weight:800; letter-spacing:-0.3px; color:#ffffff;">Cash on Delivery Quick Checkout</h2>
+      <p style="margin:4px 0 0 0; font-size:12.5px; color:#d1fae5; font-weight:500;">⚡ 15-second form. No card needed. Pay at your doorstep!</p>
+    </div>
+
+    <!-- Urgency Bar -->
+    <div style="background:#fffbeb; border-bottom:1px solid #fef3c7; padding:8px 16px; display:flex; align-items:center; justify-content:center; gap:8px; font-size:12px; font-weight:700; color:#92400e; flex-shrink:0;">
+      <span>⏱️ High demand! Cart stock reserved for:</span>
+      <span id="codify-timer-display" style="background:#fde68a; color:#78350f; padding:2px 8px; border-radius:6px; font-family:monospace; font-weight:800; font-size:13px;">13:42</span>
+    </div>
+
+    <!-- Scrollable Modal Body -->
+    <div style="overflow-y:auto; padding:0; flex:1;">
+      
+      <!-- Selected Product Info -->
+      <div style="background:#f8fafc; padding:14px 18px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; gap:12px;">
+        <div style="display:flex; align-items:center; gap:12px; min-width:0;">
+          {% if product.featured_image %}
+            <img src="{{ product.featured_image | image_url: width: 120 }}" alt="{{ product.title | escape }}" style="width:46px; height:46px; object-fit:cover; border-radius:10px; border:1px solid #e2e8f0; flex-shrink:0;" />
+          {% else %}
+            <div style="width:46px; height:46px; background:#e2e8f0; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0;">🛍️</div>
+          {% endif %}
+          <div style="min-width:0;">
+            <div style="font-size:13px; font-weight:700; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="codify-summary-title">
+              {{ product.title | default: 'Selected Product' }}
+            </div>
+            <div style="font-size:12px; color:#64748b; margin-top:2px; font-weight:600;">
+              <span id="codify-summary-price">{{ product.price | money | default: 'Rs. 3,499' }}</span> • <span style="color:#059669;">In Stock</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; background:#ffffff; border:1.5px solid #cbd5e1; border-radius:8px; overflow:hidden; flex-shrink:0;">
+          <button type="button" id="codify-qty-minus" style="width:28px; height:28px; border:none; background:#ffffff; font-weight:800; cursor:pointer; font-size:15px; color:#334155; display:flex; align-items:center; justify-content:center;">-</button>
+          <span id="codify-qty-val" style="font-weight:800; font-size:13px; min-width:24px; text-align:center; color:#0f172a;">1</span>
+          <button type="button" id="codify-qty-plus" style="width:28px; height:28px; border:none; background:#ffffff; font-weight:800; cursor:pointer; font-size:15px; color:#334155; display:flex; align-items:center; justify-content:center;">+</button>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <form id="codify-order-form" style="padding:18px; display:flex; flex-direction:column; gap:14px; margin:0;">
+        
+        <div>
+          <label style="display:block; font-size:12px; font-weight:800; color:#1e293b; margin-bottom:5px;">Full Name *</label>
+          <input type="text" id="codify-cust-name" required placeholder="e.g. Hamza Tariq" style="width:100%; padding:10px 14px; background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:10px; font-size:14px; box-sizing:border-box; outline:none; transition:all 0.2s;" />
+        </div>
+
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+            <label style="font-size:12px; font-weight:800; color:#1e293b;">WhatsApp / Mobile Number *</label>
+            <span style="font-size:10px; font-weight:700; color:#065f46; background:#ecfdf5; border:1px solid #a7f3d0; padding:2px 8px; border-radius:6px;">🛡️ OTP Verified</span>
+          </div>
+          <input type="tel" id="codify-cust-phone" required placeholder="0300-1234567" style="width:100%; padding:10px 14px; background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:10px; font-size:14px; box-sizing:border-box; outline:none; transition:all 0.2s; font-family:monospace;" />
+        </div>
+
+        <div>
+          <label style="display:block; font-size:12px; font-weight:800; color:#1e293b; margin-bottom:5px;">Delivery City *</label>
+          <select id="codify-cust-city" required style="width:100%; padding:10px 14px; background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:10px; font-size:14px; box-sizing:border-box; outline:none; transition:all 0.2s; cursor:pointer; font-weight:500;">
+            <option value="Lahore">Lahore (Fast 24h Delivery - Trax)</option>
+            <option value="Karachi">Karachi (2-3 Days - Leopards)</option>
+            <option value="Islamabad">Islamabad (1-2 Days - PostEx)</option>
+            <option value="Rawalpindi">Rawalpindi</option>
+            <option value="Faisalabad">Faisalabad</option>
+            <option value="Multan">Multan</option>
+            <option value="Peshawar">Peshawar</option>
+            <option value="Sialkot">Sialkot</option>
+            <option value="Gujranwala">Gujranwala</option>
+            <option value="Quetta">Quetta</option>
+            <option value="Hyderabad">Hyderabad</option>
+            <option value="Other">Other City / District</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="display:block; font-size:12px; font-weight:800; color:#1e293b; margin-bottom:5px;">Complete Street Address *</label>
+          <textarea id="codify-cust-address" required rows="2" placeholder="House / Flat #, Street, Near landmark, Area" style="width:100%; padding:10px 14px; background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:10px; font-size:14px; box-sizing:border-box; outline:none; resize:none; transition:all 0.2s;"></textarea>
+        </div>
+
+        <!-- 1-Click Upsells -->
+        <div>
+          <div style="font-size:12px; font-weight:800; color:#0f172a; margin-bottom:8px;">
+            ✨ Recommended 1-Click Addons:
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <label class="codify-upsell-card" style="display:flex; align-items:center; justify-content:space-between; padding:10px 12px; background:#ffffff; border:1.5px solid #e2e8f0; border-radius:10px; cursor:pointer;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <input type="checkbox" id="codify-upsell-bogo" data-price="2499" style="width:16px; height:16px; accent-color:#059669; cursor:pointer;" />
+                <div>
+                  <div style="font-size:12px; font-weight:700; color:#0f172a;">Add 2nd Piece (25% OFF - BOGO) <span style="font-size:9px; background:#fef3c7; color:#92400e; padding:1px 4px; border-radius:4px;">POPULAR</span></div>
+                  <div style="font-size:10.5px; color:#64748b;">Special discount for extra piece</div>
+                </div>
+              </div>
+              <div style="text-align:right; flex-shrink:0;">
+                <span style="font-size:12px; font-weight:800; color:#059669;">+ Rs. 2,499</span>
+              </div>
+            </label>
+
+            <label class="codify-upsell-card codify-upsell-selected" style="display:flex; align-items:center; justify-content:space-between; padding:10px 12px; background:#f0fdf4; border:1.5px solid #10b981; border-radius:10px; cursor:pointer;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <input type="checkbox" id="codify-upsell-vip" data-price="199" checked style="width:16px; height:16px; accent-color:#059669; cursor:pointer;" />
+                <div>
+                  <div style="font-size:12px; font-weight:700; color:#0f172a;">VIP Priority Dispatch + Parcel Insurance <span style="font-size:9px; background:#fef3c7; color:#b45309; padding:1px 4px; border-radius:4px;">FAST</span></div>
+                  <div style="font-size:10.5px; color:#64748b;">First out for delivery next morning</div>
+                </div>
+              </div>
+              <div style="text-align:right; flex-shrink:0;">
+                <span style="font-size:12px; font-weight:800; color:#059669;">+ Rs. 199</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Breakdown -->
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px 14px; font-size:12px; color:#334155; line-height:1.6;">
+          <div style="display:flex; justify-content:space-between;">
+            <span id="codify-calc-subtotal-label">Subtotal:</span>
+            <strong id="codify-calc-subtotal">Rs. 3,698</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span>Shipping:</span>
+            <span id="codify-calc-shipping">Rs. 150</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; border-bottom:1px solid #e2e8f0; padding-bottom:4px; margin-bottom:4px;">
+            <span>COD Handling:</span>
+            <span>Rs. 99</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:800; color:#0f172a;">
+            <span>Pay on Delivery:</span>
+            <span style="font-size:17px; color:#047857;" id="codify-calc-grand-total">Rs. 3,947</span>
+          </div>
+        </div>
+
+        <!-- CTA Button -->
+        <button type="submit" id="codify-submit-btn" style="width:100%; padding:14px 18px; background:linear-gradient(135deg, {{ block.settings.button_color | default: '#059669' }} 0%, #047857 100%); color:#ffffff; border:none; border-radius:12px; font-size:15px; font-weight:800; cursor:pointer; box-shadow:0 6px 18px rgba(5,150,105,0.35); display:flex; align-items:center; justify-content:center; gap:8px;">
+          <span>📦 Confirm Order (Pay Cash on Delivery) 🚚</span>
+        </button>
+
+        <div style="text-align:center; font-size:11px; font-weight:600; color:#64748b;">
+          🛡️ 100% Doorstep Inspection & 7-Day Easy Exchange Guaranteed
+        </div>
+
+      </form>
+
+      <!-- Success Receipt View -->
+      <div id="codify-success-view" style="display:none; padding:30px 20px; text-align:center;">
+        <div style="width:60px; height:60px; background:#ecfdf5; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 12px auto; color:#059669; font-size:32px;">
+          ✓
+        </div>
+        <h3 style="margin:0 0 6px; font-size:20px; font-weight:800; color:#0f172a;">Order Placed Successfully!</h3>
+        <p style="margin:0 0 16px; font-size:12.5px; color:#64748b;">Your COD order has been received. Our team will verify via WhatsApp.</p>
+        
+        <div style="background:#f8fafc; border:1.5px dashed #cbd5e1; padding:16px; border-radius:12px; font-size:12.5px; color:#334155; margin-bottom:20px; text-align:left; line-height:1.7;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:6px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">
+            <span style="color:#64748b;">Order Number:</span>
+            <strong style="color:#059669;" id="codify-res-order-num">#COD-PENDING</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span style="color:#64748b;">Customer:</span>
+            <strong id="codify-res-name">-</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span style="color:#64748b;">Phone:</span>
+            <strong id="codify-res-phone">-</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span style="color:#64748b;">City:</span>
+            <strong id="codify-res-city">-</strong>
+          </div>
+        </div>
+
+        <button type="button" id="codify-done-btn" style="width:100%; padding:12px; background:#0f172a; color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer;">
+          Continue Shopping
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  window.__CODIFY_CONFIG__ = window.__CODIFY_CONFIG__ || {
+    basePrice: parseFloat('{{ product.price | money_without_currency | remove: "," }}') || 3499,
+    productTitle: {{ product.title | default: 'Selected Product' | json }},
+    variantId: '{{ product.selected_or_first_available_variant.id }}',
+    shopDomain: '{{ shop.permanent_domain }}',
+    currencySymbol: '{{ cart.currency.symbol | default: "Rs." }}',
+    buttonText: {{ block.settings.button_text | default: "Order Cash on Delivery (COD)" | json }},
+    subtext: {{ block.settings.subtext | default: "⚡ 15-Sec Quick Checkout • Pay at Doorstep" | json }},
+    buttonColor: '{{ block.settings.button_color | default: "#059669" }}',
+    buttonColorHover: '{{ block.settings.button_color_hover | default: "#047857" }}',
+    textColor: '{{ block.settings.text_color | default: "#ffffff" }}',
+    borderRadius: {{ block.settings.border_radius | default: 12 }},
+    fontSize: {{ block.settings.font_size | default: 16 }},
+    enablePulse: {{ block.settings.enable_pulse | default: true }},
+    showStickyMobile: {{ block.settings.show_sticky_mobile | default: true }},
+    buttonPosition: '{{ block.settings.button_position | default: "below_atc" }}'
+  };
+
+  (function() {
+    function tryBootCodify() {
+      if (window.Codify && typeof window.Codify.init === 'function') {
+        window.Codify.init(window.__CODIFY_CONFIG__);
+      }
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', tryBootCodify);
+    } else {
+      tryBootCodify();
+    }
+  })();
+</script>
+<script src="{{ 'codify-app.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Codify COD App Embed",
+  "target": "body",
+  "settings": [
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button Main Heading",
+      "default": "Order Cash on Delivery (COD)"
+    },
+    {
+      "type": "text",
+      "id": "subtext",
+      "label": "Button Sub-heading (Optional)",
+      "default": "⚡ 15-Sec Quick Checkout • Pay at Doorstep"
+    },
+    {
+      "type": "color",
+      "id": "button_color",
+      "label": "Button Primary Color",
+      "default": "#059669"
+    },
+    {
+      "type": "color",
+      "id": "button_color_hover",
+      "label": "Button Hover / Gradient Color",
+      "default": "#047857"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Button Text Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "min": 0,
+      "max": 30,
+      "step": 2,
+      "unit": "px",
+      "label": "Border Radius",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "min": 12,
+      "max": 22,
+      "step": 1,
+      "unit": "px",
+      "label": "Font Size",
+      "default": 16
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_pulse",
+      "label": "Enable High-Converting Pulse Animation",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sticky_mobile",
+      "label": "Show Sticky Floating COD Button on Mobile",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "button_position",
+      "label": "In-Page Button Placement",
+      "options": [
+        { "value": "below_atc", "label": "Below Add to Cart / Buy Now button" },
+        { "value": "above_atc", "label": "Above Add to Cart button" },
+        { "value": "sticky_only", "label": "Sticky Floating Bar Only" }
+      ],
+      "default": "below_atc"
+    }
+  ]
+}
+{% endschema %}
