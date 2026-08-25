@@ -6,15 +6,12 @@ import {
   Outlet, 
   Scripts, 
   ScrollRestoration,
-  LiveReload,
   useLocation,
   useRouteError,
   useLoaderData,
   isRouteErrorResponse
 } from '@remix-run/react';
 import { json } from '@remix-run/node';
-import './tailwind.css';
-import tailwindStyles from './tailwind.css?url';
 import { AppProvider } from './context/AppContext';
 import { ToastContainer } from './components/ToastContainer';
 import { ShippingLabelModal } from './components/ShippingLabelModal';
@@ -23,7 +20,6 @@ import { LiveFormPreviewModal } from './components/LiveFormPreviewModal';
 
 export const links = () => [
   { rel: 'preconnect', href: 'https://cdn.shopify.com' },
-  { rel: 'stylesheet', href: tailwindStyles },
   { rel: 'stylesheet', href: 'https://unpkg.com/@shopify/polaris@12.0.0/build/esm/styles.css' },
 ];
 
@@ -91,7 +87,6 @@ export default function App() {
         </AppProvider>
         <ScrollRestoration />
         <Scripts />
-        <LiveReload />
       </body>
     </html>
   );
