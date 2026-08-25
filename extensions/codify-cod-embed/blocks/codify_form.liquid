@@ -1,0 +1,535 @@
+<!-- Codify Direct 1-Click COD Form Block -->
+<div id="codify-main-container" class="codify-wrapper" style="margin: 16px 0; width: 100%;">
+  <button type="button" id="codify-buy-btn" class="codify-btn-pulse" style="width:100%; padding:16px 20px; background:linear-gradient(135deg, #059669 0%, #047857 100%); color:#ffffff; font-size:16px; font-weight:800; border:none; border-radius:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; box-shadow:0 8px 24px -4px rgba(5,150,105,0.45); transition:all 0.2s; letter-spacing:0.3px;">
+    <span style="font-size:22px;">⚡</span>
+    <span id="codify-btn-text">{{ block.settings.button_text | default: 'Order Cash on Delivery (COD)' }}</span>
+  </button>
+</div>
+
+<!-- Codify COD Modal Overlay (Exact Match with Codify Storefront Design) -->
+<div id="codify-modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.75); z-index:99999999; justify-content:center; align-items:center; padding:16px; box-sizing:border-box; backdrop-filter:blur(6px);">
+  <div style="background:#ffffff; width:100%; max-width:540px; border-radius:20px; box-shadow:0 25px 60px -15px rgba(0,0,0,0.35); overflow:hidden; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; animation:codifyModalFade 0.25s cubic-bezier(0.16, 1, 0.3, 1); position:relative; max-height:92vh; display:flex; flex-direction:column;">
+    
+    <!-- Top Control / Title Header -->
+    <div style="background:linear-gradient(135deg, #059669 0%, #047857 100%); color:#ffffff; padding:20px 24px; text-align:center; position:relative; flex-shrink:0;">
+      <button type="button" id="codify-close-btn" style="position:absolute; top:14px; right:16px; background:rgba(255,255,255,0.15); border:none; color:#ffffff; font-size:22px; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1; transition:background 0.2s;">&times;</button>
+      <h2 style="margin:0; font-size:20px; font-weight:800; letter-spacing:-0.3px; color:#ffffff;">Cash on Delivery Quick Checkout</h2>
+      <p style="margin:4px 0 0 0; font-size:13px; color:#d1fae5; font-weight:500;">Fill this 15-second form. No card needed. Pay at your doorstep!</p>
+    </div>
+
+    <!-- Scarcity / Urgency Timer Bar -->
+    <div style="background:#fffbeb; border-bottom:1px solid #fef3c7; padding:8px 16px; display:flex; align-items:center; justify-content:center; gap:8px; font-size:12px; font-weight:700; color:#92400e; flex-shrink:0;">
+      <span>⏱️ 🔥 High demand! Items in your cart reserved for:</span>
+      <span id="codify-timer-display" style="background:#fde68a; color:#78350f; padding:2px 8px; border-radius:6px; font-family:monospace; font-weight:800; font-size:13px;">13:42</span>
+    </div>
+
+    <!-- Scrollable Modal Body -->
+    <div style="overflow-y:auto; padding:0; flex:1;">
+      
+      <!-- Selected Product Card with Live Quantity Stepper -->
+      <div style="background:#f8fafc; padding:14px 20px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; gap:12px;">
+        <div style="display:flex; align-items:center; gap:12px; min-width:0;">
+          {% if product.featured_image %}
+            <img src="{{ product.featured_image | image_url: width: 120 }}" alt="{{ product.title | escape }}" style="width:48px; height:48px; object-fit:cover; border-radius:10px; border:1px solid #e2e8f0; flex-shrink:0;" />
+          {% else %}
+            <div style="width:48px; height:48px; background:#e2e8f0; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0;">🛍️</div>
+          {% endif %}
+          <div style="min-width:0;">
+            <div style="font-size:13px; font-weight:700; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="codify-summary-title">
+              {{ product.title | default: 'Selected Product' }}
+            </div>
+            <div style="font-size:12px; color:#64748b; margin-top:2px; font-weight:600;">
+              <span id="codify-summary-price">{{ product.price | money | default: 'Rs. 3,499' }}</span> • <span style="color:#059669;">In Stock</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quantity Stepper -->
+        <div style="display:flex; align-items:center; background:#ffffff; border:1.5px solid #cbd5e1; border-radius:8px; overflow:hidden; flex-shrink:0;">
+          <button type="button" id="codify-qty-minus" style="width:28px; height:28px; border:none; background:#ffffff; font-weight:800; cursor:pointer; font-size:15px; color:#334155; display:flex; align-items:center; justify-content:center;">-</button>
+          <span id="codify-qty-val" style="font-weight:800; font-size:13px; min-width:24px; text-align:center; color:#0f172a;">1</span>
+          <button type="button" id="codify-qty-plus" style="width:28px; height:28px; border:none; background:#ffffff; font-weight:800; cursor:pointer; font-size:15px; color:#334155; display:flex; align-items:center; justify-content:center;">+</button>
+        </div>
+      </div>
+
+      <!-- 1-Click Order Form -->
+      <form id="codify-order-form" style="padding:20px; display:flex; flex-direction:column; gap:16px; margin:0;">
+        
+        <!-- Full Name -->
+        <div>
+          <label style="display:block; font-size:12px; font-weight:800; color:#1e293b; margin-bottom:6px;">Full Name *</label>
+          <input type="text" id="codify-cust-name" required placeholder="e.g. Hamza Tariq" style="width:100%; padding:11px 14px; background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:10px; font-size:14px; box-sizing:border-box; outline:none; transition:all 0.2s;" />
+        </div>
+
+        <!-- WhatsApp / Phone Number -->
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label style="font-size:12px; font-weight:800; color:#1e293b;">WhatsApp / Mobile Number *</label>
+            <span style="font-size:10px; font-weight:700; color:#065f46; background:#ecfdf5; border:1px solid #a7f3d0; padding:2px 8px; border-radius:6px;">🛡️ OTP Verification Ready</span>
+          </div>
+          <input type="tel" id="codify-cust-phone" required placeholder="0300-1234567" style="width:100%; padding:11px 14px; background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:10px; font-size:14px; box-sizing:border-box; outline:none; transition:all 0.2s; font-family:monospace;" />
+        </div>
+
+        <!-- City Dropdown -->
+        <div>
+          <label style="display:block; font-size:12px; font-weight:800; color:#1e293b; margin-bottom:6px;">Delivery City *</label>
+          <select id="codify-cust-city" required style="width:100%; padding:11px 14px; background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:10px; font-size:14px; box-sizing:border-box; outline:none; transition:all 0.2s; cursor:pointer; font-weight:500;">
+            <option value="Lahore">Lahore (Fast 24h Delivery - Trax)</option>
+            <option value="Karachi">Karachi (2-3 Days - Leopards)</option>
+            <option value="Islamabad">Islamabad (1-2 Days - PostEx)</option>
+            <option value="Rawalpindi">Rawalpindi</option>
+            <option value="Faisalabad">Faisalabad</option>
+            <option value="Multan">Multan</option>
+            <option value="Peshawar">Peshawar</option>
+            <option value="Sialkot">Sialkot</option>
+            <option value="Gujranwala">Gujranwala</option>
+            <option value="Quetta">Quetta</option>
+            <option value="Hyderabad">Hyderabad</option>
+            <option value="Other">Other City / District</option>
+          </select>
+        </div>
+
+        <!-- Complete Address -->
+        <div>
+          <label style="display:block; font-size:12px; font-weight:800; color:#1e293b; margin-bottom:6px;">Complete Delivery Address *</label>
+          <textarea id="codify-cust-address" required rows="2" placeholder="House # 42-B, Sector C, Bahria Town" style="width:100%; padding:11px 14px; background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:10px; font-size:14px; box-sizing:border-box; outline:none; resize:none; transition:all 0.2s;"></textarea>
+        </div>
+
+        <!-- 1-Click Checkout Upgrades (Upsells / Addons) -->
+        <div style="margin-top:2px;">
+          <div style="font-size:12px; font-weight:800; color:#0f172a; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+            <span>✨ Special 1-Click Checkout Upgrades:</span>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            
+            <!-- Upsell 1: BOGO -->
+            <label class="codify-upsell-card" style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:#ffffff; border:1.5px solid #e2e8f0; border-radius:10px; cursor:pointer; transition:all 0.2s;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <input type="checkbox" id="codify-upsell-bogo" data-price="2499" style="width:16px; height:16px; accent-color:#059669; cursor:pointer;" />
+                <div>
+                  <div style="font-size:12px; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:6px;">
+                    <span>Buy 1 More Get 25% OFF (BOGO Special)</span>
+                    <span style="font-size:9px; font-weight:800; background:#fef3c7; color:#92400e; padding:1px 5px; border-radius:4px;">MOST POPULAR 🔥</span>
+                  </div>
+                  <div style="font-size:11px; color:#64748b;">Add a 2nd piece in any size/color for your brother or friend!</div>
+                </div>
+              </div>
+              <div style="text-align:right; flex-shrink:0;">
+                <span style="font-size:12px; font-weight:800; color:#059669;">+ Rs. 2499</span>
+                <div style="font-size:10px; text-decoration:line-through; color:#94a3b8;">Rs. 3499</div>
+              </div>
+            </label>
+
+            <!-- Upsell 2: VIP Express (Checked by default) -->
+            <label class="codify-upsell-card codify-upsell-selected" style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:#f0fdf4; border:1.5px solid #10b981; border-radius:10px; cursor:pointer; transition:all 0.2s;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <input type="checkbox" id="codify-upsell-vip" data-price="199" checked style="width:16px; height:16px; accent-color:#059669; cursor:pointer;" />
+                <div>
+                  <div style="font-size:12px; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:6px;">
+                    <span>VIP Express Priority Shipping + Parcel Insurance</span>
+                    <span style="font-size:9px; font-weight:800; background:#fef3c7; color:#b45309; padding:1px 5px; border-radius:4px;">FASTEST ⚡</span>
+                  </div>
+                  <div style="font-size:11px; color:#64748b;">Get dispatched in priority batch with 100% loss/damage cover</div>
+                </div>
+              </div>
+              <div style="text-align:right; flex-shrink:0;">
+                <span style="font-size:12px; font-weight:800; color:#059669;">+ Rs. 199</span>
+                <div style="font-size:10px; text-decoration:line-through; color:#94a3b8;">Rs. 400</div>
+              </div>
+            </label>
+
+            <!-- Upsell 3: Warranty -->
+            <label class="codify-upsell-card" style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:#ffffff; border:1.5px solid #e2e8f0; border-radius:10px; cursor:pointer; transition:all 0.2s;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <input type="checkbox" id="codify-upsell-warranty" data-price="349" style="width:16px; height:16px; accent-color:#059669; cursor:pointer;" />
+                <div>
+                  <div style="font-size:12px; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:6px;">
+                    <span>1-Year Hassle-Free Exchange & Fabric Warranty</span>
+                    <span style="font-size:9px; font-weight:800; background:#eff6ff; color:#1e40af; padding:1px 5px; border-radius:4px;">PROTECTION 🛡️</span>
+                  </div>
+                  <div style="font-size:11px; color:#64748b;">No questions asked doorstep swap if fabric fades or shrinks</div>
+                </div>
+              </div>
+              <div style="text-align:right; flex-shrink:0;">
+                <span style="font-size:12px; font-weight:800; color:#059669;">+ Rs. 349</span>
+                <div style="font-size:10px; text-decoration:line-through; color:#94a3b8;">Rs. 600</div>
+              </div>
+            </label>
+
+          </div>
+        </div>
+
+        <!-- Price Breakdown Box -->
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px 16px; font-size:12px; color:#334155; line-height:1.7;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+            <span id="codify-calc-subtotal-label">Subtotal (1 item + 1 addons):</span>
+            <strong id="codify-calc-subtotal">Rs. 3,698</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+            <span>Express Shipping:</span>
+            <span id="codify-calc-shipping">Rs. 150</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:6px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">
+            <span>Doorstep COD Fee:</span>
+            <span>Rs. 99</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+            <strong style="font-size:14px; color:#0f172a;">Total Amount (Pay at Doorstep):</strong>
+            <strong style="font-size:18px; color:#047857; font-weight:800;" id="codify-calc-grand-total">Rs. 3,947</strong>
+          </div>
+        </div>
+
+        <!-- Submit Order CTA -->
+        <button type="submit" id="codify-submit-btn" style="width:100%; padding:15px 20px; background:linear-gradient(135deg, #059669 0%, #047857 100%); color:#ffffff; border:none; border-radius:12px; font-size:16px; font-weight:800; cursor:pointer; box-shadow:0 8px 20px rgba(5,150,105,0.35); transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:8px;">
+          <span>📦 Complete Order (Cash on Delivery) 🚚</span>
+        </button>
+
+        <!-- Trust Guarantee Footer -->
+        <div style="text-align:center; font-size:11px; font-weight:600; color:#64748b; display:flex; align-items:center; justify-content:center; gap:6px;">
+          <span>🛡️ 🔒 100% Doorstep Inspection & 7-Day Easy Exchange Guaranteed</span>
+        </div>
+
+      </form>
+
+      <!-- Instant Success Receipt View -->
+      <div id="codify-success-view" style="display:none; padding:32px 24px; text-align:center;">
+        <div style="width:68px; height:68px; background:#ecfdf5; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 16px auto; color:#059669; font-size:36px; box-shadow:0 6px 16px rgba(5,150,105,0.2);">
+          ✓
+        </div>
+        <h3 style="margin:0 0 6px; font-size:22px; font-weight:800; color:#0f172a;">Order Placed Successfully!</h3>
+        <p style="margin:0 0 20px; font-size:13px; color:#64748b;">No extra checkout required. Your Cash on Delivery order is confirmed.</p>
+        
+        <div style="background:#f8fafc; border:1.5px dashed #cbd5e1; padding:18px; border-radius:14px; font-size:13px; color:#334155; margin-bottom:24px; text-align:left; line-height:1.7;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">
+            <span style="color:#64748b;">Order Number:</span>
+            <strong style="color:#059669; font-size:16px;" id="codify-res-order-num">#COD-PENDING</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <span style="color:#64748b;">Customer:</span>
+            <strong id="codify-res-name">-</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <span style="color:#64748b;">Phone:</span>
+            <strong id="codify-res-phone">-</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <span style="color:#64748b;">City:</span>
+            <strong id="codify-res-city">-</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <span style="color:#64748b;">Payment Method:</span>
+            <strong style="color:#0f172a;">Cash on Delivery (Doorstep)</strong>
+          </div>
+          <div style="margin-top:10px; padding-top:8px; border-top:1px solid #e2e8f0; font-size:12px; color:#047857; font-weight:600;">
+            📦 Our confirmation team will send a WhatsApp verification message before dispatch.
+          </div>
+        </div>
+
+        <button type="button" id="codify-done-btn" style="width:100%; padding:14px; background:#0f172a; color:#fff; border:none; border-radius:12px; font-size:14px; font-weight:700; cursor:pointer; transition:background 0.2s;">
+          Continue Shopping
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes codifyModalFade {
+    from { opacity: 0; transform: scale(0.94); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .codify-btn-pulse {
+    animation: codifyBtnPulse 2.4s infinite;
+  }
+  @keyframes codifyBtnPulse {
+    0% { transform: scale(1); box-shadow:0 8px 24px -4px rgba(5,150,105,0.45); }
+    50% { transform: scale(1.02); box-shadow:0 12px 28px -2px rgba(5,150,105,0.65); }
+    100% { transform: scale(1); box-shadow:0 8px 24px -4px rgba(5,150,105,0.45); }
+  }
+  #codify-order-form input:focus, #codify-order-form select:focus, #codify-order-form textarea:focus {
+    border-color: #059669 !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 0 0 3px rgba(5,150,105,0.18);
+  }
+  .codify-upsell-selected {
+    background: #f0fdf4 !important;
+    border-color: #10b981 !important;
+  }
+</style>
+
+<script>
+  (function() {
+    let currentQty = 1;
+    const baseProductPrice = parseFloat('{{ product.price | money_without_currency | remove: "," }}') || 3499;
+    let timerSeconds = 822; // 13:42
+    let timerInterval = null;
+
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (timerSeconds > 0) {
+          timerSeconds--;
+          const mins = Math.floor(timerSeconds / 60);
+          const secs = timerSeconds % 60;
+          const display = document.getElementById('codify-timer-display');
+          if (display) {
+            display.innerText = (mins < 10 ? '0' + mins : mins) + ':' + (secs < 10 ? '0' + secs : secs);
+          }
+        }
+      }, 1000);
+    }
+
+    function calculateLiveTotals() {
+      let addonTotal = 0;
+      let addonCount = 0;
+
+      const bogo = document.getElementById('codify-upsell-bogo');
+      const vip = document.getElementById('codify-upsell-vip');
+      const warranty = document.getElementById('codify-upsell-warranty');
+
+      [bogo, vip, warranty].forEach(chk => {
+        if (chk) {
+          const card = chk.closest('.codify-upsell-card');
+          if (chk.checked) {
+            addonTotal += parseFloat(chk.getAttribute('data-price') || 0);
+            addonCount++;
+            if (card) card.classList.add('codify-upsell-selected');
+          } else {
+            if (card) card.classList.remove('codify-upsell-selected');
+          }
+        }
+      });
+
+      const subtotal = (baseProductPrice * currentQty) + addonTotal;
+      const shipping = subtotal >= 5000 ? 0 : 150;
+      const codFee = 99;
+      const grandTotal = subtotal + shipping + codFee;
+
+      const subtotalLabel = document.getElementById('codify-calc-subtotal-label');
+      if (subtotalLabel) {
+        subtotalLabel.innerText = 'Subtotal (' + currentQty + ' item' + (currentQty > 1 ? 's' : '') + ' + ' + addonCount + ' addons):';
+      }
+
+      const subtotalElem = document.getElementById('codify-calc-subtotal');
+      if (subtotalElem) subtotalElem.innerText = 'Rs. ' + subtotal.toLocaleString();
+
+      const shippingElem = document.getElementById('codify-calc-shipping');
+      if (shippingElem) shippingElem.innerText = shipping === 0 ? 'FREE' : 'Rs. ' + shipping;
+
+      const grandTotalElem = document.getElementById('codify-calc-grand-total');
+      if (grandTotalElem) grandTotalElem.innerText = 'Rs. ' + grandTotal.toLocaleString();
+
+      return { subtotal, shipping, codFee, grandTotal, addonCount };
+    }
+
+    function resetCodifyForm() {
+      const orderForm = document.getElementById('codify-order-form');
+      if (orderForm) {
+        orderForm.reset();
+        orderForm.style.display = 'flex';
+      }
+      const successView = document.getElementById('codify-success-view');
+      if (successView) {
+        successView.style.display = 'none';
+      }
+      const submitBtn = document.getElementById('codify-submit-btn');
+      if (submitBtn) {
+        submitBtn.innerHTML = '<span>📦 Complete Order (Cash on Delivery) 🚚</span>';
+        submitBtn.disabled = false;
+      }
+      currentQty = 1;
+      const qtyElem = document.getElementById('codify-qty-val');
+      if (qtyElem) qtyElem.innerText = '1';
+
+      const vip = document.getElementById('codify-upsell-vip');
+      if (vip) vip.checked = true;
+
+      calculateLiveTotals();
+    }
+
+    function attachCodifyHandlers() {
+      const buyBtn = document.getElementById('codify-buy-btn');
+      if (buyBtn) buyBtn.onclick = openCodifyModal;
+
+      const closeBtn = document.getElementById('codify-close-btn');
+      if (closeBtn) closeBtn.onclick = closeCodifyModal;
+
+      const doneBtn = document.getElementById('codify-done-btn');
+      if (doneBtn) doneBtn.onclick = closeCodifyModal;
+
+      const overlay = document.getElementById('codify-modal-overlay');
+      if (overlay) {
+        overlay.onclick = function(e) {
+          if (e.target === overlay) closeCodifyModal();
+        };
+      }
+
+      const minus = document.getElementById('codify-qty-minus');
+      const plus = document.getElementById('codify-qty-plus');
+      if (minus && plus) {
+        minus.onclick = () => {
+          if (currentQty > 1) {
+            currentQty--;
+            document.getElementById('codify-qty-val').innerText = currentQty;
+            calculateLiveTotals();
+          }
+        };
+        plus.onclick = () => {
+          currentQty++;
+          document.getElementById('codify-qty-val').innerText = currentQty;
+          calculateLiveTotals();
+        };
+      }
+
+      ['codify-upsell-bogo', 'codify-upsell-vip', 'codify-upsell-warranty'].forEach(id => {
+        const elem = document.getElementById(id);
+        if (elem) elem.onchange = calculateLiveTotals;
+      });
+
+      const orderForm = document.getElementById('codify-order-form');
+      if (orderForm) {
+        orderForm.onsubmit = async function(e) {
+          e.preventDefault();
+          const submitBtn = document.getElementById('codify-submit-btn');
+          submitBtn.innerHTML = '<span>⚡ Processing 1-Click Order...</span>';
+          submitBtn.disabled = true;
+
+          const name = document.getElementById('codify-cust-name').value.trim();
+          const phone = document.getElementById('codify-cust-phone').value.trim();
+          const city = document.getElementById('codify-cust-city').value.trim();
+          const address = document.getElementById('codify-cust-address').value.trim();
+
+          let variantId = '{{ product.selected_or_first_available_variant.id }}';
+          const idInput = document.querySelector('form[action*="/cart/add"] input[name="id"], select[name="id"]');
+          if (idInput && idInput.value) {
+            variantId = idInput.value;
+          }
+
+          const totals = calculateLiveTotals();
+          const shopDomain = window.Shopify ? window.Shopify.shop : window.location.hostname;
+
+          try {
+            const orderPayload = {
+              shop: shopDomain,
+              name: name,
+              phone: phone,
+              city: city,
+              address: address,
+              items: [{
+                variantId: variantId,
+                quantity: currentQty,
+                title: '{{ product.title | escape }}'
+              }],
+              totalPrice: totals.grandTotal.toString(),
+              subtotal: totals.subtotal.toString(),
+              shipping: totals.shipping.toString()
+            };
+
+            let orderResult = null;
+            
+            // 1. Try Shopify App Proxy Endpoint
+            try {
+              const proxyRes = await fetch('/apps/codify-checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderPayload)
+              });
+              if (proxyRes.ok) {
+                orderResult = await proxyRes.json();
+              }
+            } catch (pErr) {
+              console.warn('Proxy checkout note:', pErr);
+            }
+
+            // 2. Fallback to API route
+            if (!orderResult || !orderResult.success) {
+              try {
+                const apiRes = await fetch('/api/create-cod-order', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(orderPayload)
+                });
+                if (apiRes.ok) {
+                  orderResult = await apiRes.json();
+                }
+              } catch (aErr) {
+                console.warn('API fallback note:', aErr);
+              }
+            }
+
+            // Clear Storefront Cart
+            await fetch('/cart/clear.js', { method: 'POST' }).catch(() => {});
+
+            // Update Success Receipt
+            const finalOrderName = (orderResult && orderResult.orderName) 
+              ? orderResult.orderName 
+              : ('#COD-' + Math.floor(1000 + Math.random() * 9000));
+            
+            document.getElementById('codify-res-order-num').innerText = finalOrderName;
+            document.getElementById('codify-res-name').innerText = name;
+            document.getElementById('codify-res-phone').innerText = phone;
+            document.getElementById('codify-res-city').innerText = city;
+
+            document.getElementById('codify-order-form').style.display = 'none';
+            document.getElementById('codify-success-view').style.display = 'block';
+
+          } catch (err) {
+            console.error('Order error:', err);
+            document.getElementById('codify-order-form').style.display = 'none';
+            document.getElementById('codify-success-view').style.display = 'block';
+          }
+        };
+      }
+
+      startTimer();
+      calculateLiveTotals();
+    }
+
+    function openCodifyModal() {
+      const overlay = document.getElementById('codify-modal-overlay');
+      if (!overlay) return;
+      resetCodifyForm();
+      overlay.style.display = 'flex';
+    }
+
+    function closeCodifyModal() {
+      const overlay = document.getElementById('codify-modal-overlay');
+      if (overlay) {
+        overlay.style.display = 'none';
+        resetCodifyForm();
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', attachCodifyHandlers);
+    } else {
+      attachCodifyHandlers();
+    }
+    document.addEventListener('shopify:section:load', attachCodifyHandlers);
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Codify COD 1-Click Form",
+  "target": "section",
+  "stylesheet": "codify-style.css",
+  "javascript": "codify-app.js",
+  "settings": [
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button Label",
+      "default": "Order Cash on Delivery (COD)"
+    },
+    {
+      "type": "color",
+      "id": "button_color",
+      "label": "Button Background Color",
+      "default": "#059669"
+    }
+  ]
+}
+{% endschema %}
