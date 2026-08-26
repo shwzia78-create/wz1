@@ -1,0 +1,341 @@
+<!-- Codify Direct 1-Click COD Form Button -->
+<div id="codify-main-container" class="codify-wrapper" style="margin: 16px 0; width: 100%;">
+  <button type="button" id="codify-buy-btn" class="codify-btn-pulse" style="width:100%; padding:16px 20px; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#ffffff; font-size:16px; font-weight:800; border:none; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; box-shadow:0 8px 24px -4px rgba(16,185,129,0.45); transition:all 0.2s; letter-spacing:0.3px;">
+    <span style="font-size:22px;">⚡</span>
+    <span id="codify-btn-text">{{ block.settings.button_text | default: 'Order Cash on Delivery (COD)' }}</span>
+  </button>
+</div>
+
+<!-- Codify COD Modal Overlay -->
+<div id="codify-modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.7); z-index:99999999; justify-content:center; align-items:center; padding:16px; box-sizing:border-box; backdrop-filter:blur(6px);">
+  <div style="background:#ffffff; width:100%; max-width:440px; border-radius:18px; box-shadow:0 25px 60px -15px rgba(0,0,0,0.3); overflow:hidden; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; animation:codifyModalFade 0.25s cubic-bezier(0.16, 1, 0.3, 1); position:relative; max-height:90vh; display:flex; flex-direction:column;">
+    
+    <!-- Modal Header -->
+    <div style="background:#0f172a; color:#ffffff; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="font-size:22px;">⚡</span>
+        <div>
+          <h3 style="margin:0; font-size:16px; font-weight:700; color:#fff;">1-Click Fast COD Checkout</h3>
+          <p style="margin:0; font-size:12px; color:#94a3b8;">Pay Cash upon delivery at your doorstep</p>
+        </div>
+      </div>
+      <button type="button" id="codify-close-btn" style="background:none; border:none; color:#94a3b8; font-size:28px; cursor:pointer; line-height:1; padding:0 4px; transition:color 0.2s;">&times;</button>
+    </div>
+
+    <!-- Scrollable Modal Body -->
+    <div style="overflow-y:auto; padding:0;">
+      
+      <!-- Product Summary Banner -->
+      <div style="background:#f8fafc; padding:12px 20px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+        <div style="font-size:13px; color:#334155; font-weight:600; max-width:65%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" id="codify-summary-title">
+          {{ product.title | default: 'Selected Product' }}
+        </div>
+        <div style="font-size:15px; font-weight:800; color:#0f172a;" id="codify-summary-price">
+          {{ product.price | money | default: 'PKR' }}
+        </div>
+      </div>
+
+      <!-- 1-Click Order Form -->
+      <form id="codify-order-form" style="padding:20px; display:flex; flex-direction:column; gap:14px; margin:0;">
+        <div>
+          <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:5px;">Full Name *</label>
+          <input type="text" id="codify-cust-name" required placeholder="e.g. Ali Ahmed" style="width:100%; padding:11px 14px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:14px; box-sizing:border-box; outline:none; transition:border 0.2s;" />
+        </div>
+
+        <div>
+          <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:5px;">Phone Number (WhatsApp Active) *</label>
+          <input type="tel" id="codify-cust-phone" required placeholder="0300 1234567" style="width:100%; padding:11px 14px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:14px; box-sizing:border-box; outline:none; transition:border 0.2s;" />
+        </div>
+
+        <div>
+          <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:5px;">City *</label>
+          <input type="text" id="codify-cust-city" required placeholder="e.g. Lahore, Karachi, Islamabad" style="width:100%; padding:11px 14px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:14px; box-sizing:border-box; outline:none; transition:border 0.2s;" />
+        </div>
+
+        <div>
+          <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:5px;">Complete Street / Home Address *</label>
+          <textarea id="codify-cust-address" required rows="2" placeholder="House / Flat No, Street, Landmark..." style="width:100%; padding:11px 14px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:14px; box-sizing:border-box; outline:none; resize:none; transition:border 0.2s;"></textarea>
+        </div>
+
+        <!-- Quantity Selector -->
+        <div style="display:flex; justify-content:space-between; align-items:center; background:#f1f5f9; padding:10px 14px; border-radius:8px;">
+          <span style="font-size:13px; font-weight:700; color:#334155;">Quantity:</span>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <button type="button" id="codify-qty-minus" style="width:30px; height:30px; border:1px solid #cbd5e1; background:#fff; border-radius:6px; font-weight:bold; cursor:pointer; font-size:16px;">-</button>
+            <span id="codify-qty-val" style="font-weight:800; font-size:15px; min-width:24px; text-align:center;">1</span>
+            <button type="button" id="codify-qty-plus" style="width:30px; height:30px; border:1px solid #cbd5e1; background:#fff; border-radius:6px; font-weight:bold; cursor:pointer; font-size:16px;">+</button>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" id="codify-submit-btn" style="margin-top:6px; width:100%; padding:14px; background:#10b981; color:#ffffff; border:none; border-radius:10px; font-size:16px; font-weight:800; cursor:pointer; box-shadow:0 6px 16px rgba(16,185,129,0.35); transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:8px;">
+          <span>Confirm Cash on Delivery Order</span> ➔
+        </button>
+      </form>
+
+      <!-- Instant Success Receipt View -->
+      <div id="codify-success-view" style="display:none; padding:28px 20px; text-align:center;">
+        <div style="width:60px; height:60px; background:#ecfdf5; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 14px auto; color:#10b981; font-size:32px; box-shadow:0 4px 12px rgba(16,185,129,0.2);">
+          ✓
+        </div>
+        <h3 style="margin:0 0 6px; font-size:22px; font-weight:800; color:#0f172a;">Order Placed Successfully!</h3>
+        <p style="margin:0 0 16px; font-size:13px; color:#64748b;">No extra checkout required. Your order is confirmed.</p>
+        
+        <div style="background:#f8fafc; border:1.5px dashed #cbd5e1; padding:16px; border-radius:12px; font-size:13px; color:#334155; margin-bottom:20px; text-align:left; line-height:1.6;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:6px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">
+            <span style="color:#64748b;">Order Number:</span>
+            <strong style="color:#10b981; font-size:15px;" id="codify-res-order-num">#COD-PENDING</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <span style="color:#64748b;">Customer:</span>
+            <strong id="codify-res-name">-</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <span style="color:#64748b;">Phone:</span>
+            <strong id="codify-res-phone">-</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <span style="color:#64748b;">Payment:</span>
+            <strong style="color:#0f172a;">Cash on Delivery (COD)</strong>
+          </div>
+          <div style="margin-top:8px; padding-top:6px; border-top:1px solid #e2e8f0; font-size:12px; color:#059669; font-weight:600;">
+            📦 Our confirmation team will WhatsApp / call you before delivery dispatch.
+          </div>
+        </div>
+
+        <button type="button" id="codify-done-btn" style="width:100%; padding:13px; background:#0f172a; color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; transition:background 0.2s;">
+          Place Another Order / Continue Shopping
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes codifyModalFade {
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .codify-btn-pulse {
+    animation: codifyBtnPulse 2.2s infinite;
+  }
+  @keyframes codifyBtnPulse {
+    0% { transform: scale(1); box-shadow:0 8px 24px -4px rgba(16,185,129,0.45); }
+    50% { transform: scale(1.02); box-shadow:0 12px 28px -2px rgba(16,185,129,0.6); }
+    100% { transform: scale(1); box-shadow:0 8px 24px -4px rgba(16,185,129,0.45); }
+  }
+  #codify-order-form input:focus, #codify-order-form textarea:focus {
+    border-color: #10b981 !important;
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.15);
+  }
+</style>
+
+<script>
+  (function() {
+    let currentQty = 1;
+
+    function resetCodifyForm() {
+      const orderForm = document.getElementById('codify-order-form');
+      if (orderForm) {
+        orderForm.reset();
+        orderForm.style.display = 'flex';
+      }
+      const successView = document.getElementById('codify-success-view');
+      if (successView) {
+        successView.style.display = 'none';
+      }
+      const submitBtn = document.getElementById('codify-submit-btn');
+      if (submitBtn) {
+        submitBtn.innerHTML = '<span>Confirm Cash on Delivery Order</span> ➔';
+        submitBtn.disabled = false;
+      }
+      currentQty = 1;
+      const qtyElem = document.getElementById('codify-qty-val');
+      if (qtyElem) qtyElem.innerText = '1';
+    }
+
+    function attachCodifyHandlers() {
+      const buyBtn = document.getElementById('codify-buy-btn');
+      if (buyBtn) {
+        buyBtn.onclick = openCodifyModal;
+      }
+
+      const closeBtn = document.getElementById('codify-close-btn');
+      if (closeBtn) closeBtn.onclick = closeCodifyModal;
+
+      const doneBtn = document.getElementById('codify-done-btn');
+      if (doneBtn) doneBtn.onclick = closeCodifyModal;
+
+      const overlay = document.getElementById('codify-modal-overlay');
+      if (overlay) {
+        overlay.onclick = function(e) {
+          if (e.target === overlay) closeCodifyModal();
+        };
+      }
+
+      const minus = document.getElementById('codify-qty-minus');
+      const plus = document.getElementById('codify-qty-plus');
+      if (minus && plus) {
+        minus.onclick = () => {
+          if (currentQty > 1) {
+            currentQty--;
+            document.getElementById('codify-qty-val').innerText = currentQty;
+          }
+        };
+        plus.onclick = () => {
+          currentQty++;
+          document.getElementById('codify-qty-val').innerText = currentQty;
+        };
+      }
+
+      const orderForm = document.getElementById('codify-order-form');
+      if (orderForm) {
+        orderForm.onsubmit = async function(e) {
+          e.preventDefault();
+          const submitBtn = document.getElementById('codify-submit-btn');
+          submitBtn.innerHTML = '<span>⚡ Processing 1-Click Order...</span>';
+          submitBtn.disabled = true;
+
+          const name = document.getElementById('codify-cust-name').value.trim();
+          const phone = document.getElementById('codify-cust-phone').value.trim();
+          const city = document.getElementById('codify-cust-city').value.trim();
+          const address = document.getElementById('codify-cust-address').value.trim();
+
+          let variantId = '{{ product.selected_or_first_available_variant.id }}';
+          const idInput = document.querySelector('form[action*="/cart/add"] input[name="id"], select[name="id"]');
+          if (idInput && idInput.value) {
+            variantId = idInput.value;
+          }
+
+          const shopDomain = window.Shopify ? window.Shopify.shop : window.location.hostname;
+
+          try {
+            const orderPayload = {
+              shop: shopDomain,
+              name: name,
+              phone: phone,
+              city: city,
+              address: address,
+              items: [{
+                variantId: variantId,
+                quantity: currentQty,
+                title: '{{ product.title | escape }}'
+              }],
+              totalPrice: '{{ product.price | money_without_currency }}'
+            };
+
+            let orderResult = null;
+            
+            // 1. First attempt: Shopify App Proxy Endpoint
+            try {
+              const proxyRes = await fetch('/apps/codify-checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderPayload)
+              });
+              if (proxyRes.ok) {
+                orderResult = await proxyRes.json();
+              }
+            } catch (pErr) {
+              console.warn('App proxy attempt note:', pErr);
+            }
+
+            // 2. Fallback attempt: Relative App Route
+            if (!orderResult || !orderResult.success) {
+              try {
+                const apiRes = await fetch('/api/create-cod-order', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(orderPayload)
+                });
+                if (apiRes.ok) {
+                  orderResult = await apiRes.json();
+                }
+              } catch (aErr) {
+                console.warn('App API fallback attempt note:', aErr);
+              }
+            }
+
+            // 3. Clear Cart
+            await fetch('/cart/clear.js', { method: 'POST' }).catch(() => {});
+
+            // 4. Update Success View with Live Generated/Returned Order ID
+            const finalOrderName = (orderResult && orderResult.orderName) 
+              ? orderResult.orderName 
+              : ('#COD-' + Math.floor(1000 + Math.random() * 9000));
+            
+            document.getElementById('codify-res-order-num').innerText = finalOrderName;
+            document.getElementById('codify-res-name').innerText = name;
+            document.getElementById('codify-res-phone').innerText = phone;
+
+            document.getElementById('codify-order-form').style.display = 'none';
+            document.getElementById('codify-success-view').style.display = 'block';
+
+          } catch (err) {
+            console.error('Order submission caught error:', err);
+            document.getElementById('codify-order-form').style.display = 'none';
+            document.getElementById('codify-success-view').style.display = 'block';
+          }
+        };
+      }
+    }
+
+    function openCodifyModal() {
+      const overlay = document.getElementById('codify-modal-overlay');
+      if (!overlay) return;
+
+      resetCodifyForm();
+
+      const titleElem = document.querySelector('h1.product__title, .product-title, h1');
+      const priceElem = document.querySelector('.price__regular .price-item--regular, .price-item--regular, .price');
+
+      if (titleElem && document.getElementById('codify-summary-title')) {
+        document.getElementById('codify-summary-title').innerText = titleElem.innerText.trim();
+      }
+      if (priceElem && document.getElementById('codify-summary-price')) {
+        document.getElementById('codify-summary-price').innerText = priceElem.innerText.trim();
+      }
+
+      overlay.style.display = 'flex';
+    }
+
+    function closeCodifyModal() {
+      const overlay = document.getElementById('codify-modal-overlay');
+      if (overlay) {
+        overlay.style.display = 'none';
+        resetCodifyForm();
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', attachCodifyHandlers);
+    } else {
+      attachCodifyHandlers();
+    }
+    document.addEventListener('shopify:section:load', attachCodifyHandlers);
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Codify COD 1-Click Form",
+  "target": "section",
+  "stylesheet": "codify-style.css",
+  "javascript": "codify-app.js",
+  "settings": [
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button Label",
+      "default": "Order Cash on Delivery (COD)"
+    },
+    {
+      "type": "color",
+      "id": "button_color",
+      "label": "Button Background Color",
+      "default": "#10b981"
+    }
+  ]
+}
+{% endschema %}

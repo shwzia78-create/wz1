@@ -1,0 +1,6 @@
+{
+  "name": "Codify Cash on Delivery",
+  "description": "Codify COD Shopify App & Theme App Embed Extension for 1-Click Cash on Delivery Checkout",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
