@@ -393,22 +393,44 @@
 
             let orderResult = null;
             
-            // 1. Try Shopify App Proxy Endpoint
+            // 1. Try Direct Live Vercel API Endpoint
             try {
-              const proxyRes = await fetch('/apps/codify-checkout', {
+              const directApiRes = await fetch('https://codify-app-live.vercel.app/api/create-cod-order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(orderPayload)
               });
-              if (proxyRes.ok) {
-                orderResult = await proxyRes.json();
+              if (directApiRes.ok) {
+                const resData = await directApiRes.json();
+                if (resData && (resData.orderName || resData.orderId)) {
+                  orderResult = resData;
+                }
               }
-            } catch (pErr) {
-              console.warn('Proxy checkout note:', pErr);
+            } catch (dErr) {
+              console.warn('Direct API note:', dErr);
             }
 
-            // 2. Direct fallback to live Vercel endpoint
-            if (!orderResult || !orderResult.success) {
+            // 2. Try Shopify App Proxy Endpoint
+            if (!orderResult || !orderResult.orderName) {
+              try {
+                const proxyRes = await fetch('/apps/codify-checkout', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(orderPayload)
+                });
+                if (proxyRes.ok) {
+                  const pData = await proxyRes.json();
+                  if (pData && (pData.orderName || pData.orderId)) {
+                    orderResult = pData;
+                  }
+                }
+              } catch (pErr) {
+                console.warn('Proxy checkout note:', pErr);
+              }
+            }
+
+            // 3. Fallback to /apps/codify-checkout on Vercel
+            if (!orderResult || !orderResult.orderName) {
               try {
                 const apiRes = await fetch('https://codify-app-live.vercel.app/apps/codify-checkout', {
                   method: 'POST',
